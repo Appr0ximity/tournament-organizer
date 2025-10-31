@@ -76,7 +76,11 @@ export default function PlayerSetup({ onStartTournament }: PlayerSetupProps) {
         <button
           onClick={handleStartTournament}
           disabled={playerList.length < 2}
-          className="w-full py-4 bg-gradient-to-r from-neon-cyan to-neon-blue text-black font-bold text-lg rounded hover:shadow-neon-cyan disabled:from-gray-700 disabled:to-gray-800 disabled:text-gray-500 disabled:cursor-not-allowed disabled:shadow-none transition-all duration-300 uppercase tracking-wider"
+          className={`w-full py-4 font-bold text-lg rounded transition-all duration-300 uppercase tracking-wider ${
+            playerList.length >= 2
+              ? 'bg-gradient-to-r from-neon-cyan to-neon-blue text-black hover:shadow-neon-cyan cursor-pointer'
+              : 'bg-gradient-to-r from-gray-700 to-gray-800 text-gray-500 cursor-not-allowed'
+          }`}
         >
           Start Tournament
         </button>
