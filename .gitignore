@@ -31,3 +31,4 @@ prisma/migrations
 *.sw?
 
 /src/generated/prisma
+.vercel
