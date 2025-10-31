@@ -1,4 +1,4 @@
-import type { Tournament, Player, Match } from '../types';
+import type { Player, Match } from '../types';
 
 // In production (Vercel), API routes are at /api
 // In development, they're at http://localhost:3001/api (if using Express) or can use Vite proxy
