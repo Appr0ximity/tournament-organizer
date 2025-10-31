@@ -19,14 +19,52 @@ export default async function handler(
     try {
       const tournaments = await prisma.tournament.findMany({
         include: {
-          players: true,
-          matches: true,
+          matches: {
+            include: {
+              homePlayer: true,
+              awayPlayer: true,
+            },
+          },
         },
         orderBy: {
           createdAt: 'desc',
         },
       });
-      return res.status(200).json(tournaments);
+
+      // Get unique players from matches
+      const tournamentsWithPlayers = tournaments.map(tournament => {
+        const playerIds = new Set<string>();
+        tournament.matches.forEach(match => {
+          playerIds.add(match.homePlayerId);
+          playerIds.add(match.awayPlayerId);
+        });
+
+        const players = Array.from(playerIds).map(id => {
+          const match = tournament.matches.find(
+            m => m.homePlayerId === id || m.awayPlayerId === id
+          );
+          return match?.homePlayerId === id ? match.homePlayer : match?.awayPlayer;
+        }).filter(Boolean);
+
+        return {
+          ...tournament,
+          players,
+          matches: tournament.matches.map(m => ({
+            id: m.id,
+            tournamentId: m.tournamentId,
+            homePlayerId: m.homePlayerId,
+            awayPlayerId: m.awayPlayerId,
+            homeScore: m.homeScore,
+            awayScore: m.awayScore,
+            played: m.played,
+            round: m.round,
+            createdAt: m.createdAt,
+            updatedAt: m.updatedAt,
+          })),
+        };
+      });
+
+      return res.status(200).json(tournamentsWithPlayers);
     } catch (error) {
       console.error('Error fetching tournaments:', error);
       return res.status(500).json({ error: 'Failed to fetch tournaments' });
@@ -39,38 +77,53 @@ export default async function handler(
 
       console.log('Creating tournament with:', { name, playersCount: players?.length, matchesCount: matches?.length });
 
+      // Create tournament
       const tournament = await prisma.tournament.create({
         data: {
           name,
           started: true,
-          players: {
-            create: players.map((player: any) => ({
-              name: player.name,
-              played: player.stats.played,
-              won: player.stats.won,
-              drawn: player.stats.drawn,
-              lost: player.stats.lost,
-              goalsFor: player.stats.goalsFor,
-              goalsAgainst: player.stats.goalsAgainst,
-              goalDifference: player.stats.goalDifference,
-              points: player.stats.points,
-            })),
-          },
-        },
-        include: {
-          players: true,
         },
       });
 
-      // Create matches with the actual player IDs
-      const playerIdMap = new Map(
-        players.map((p: any, idx: number) => [p.id, tournament.players[idx].id])
+      // Get or create players (reuse existing players by name)
+      const playerRecords = await Promise.all(
+        players.map(async (player: any) => {
+          // Try to find existing player by name
+          let existingPlayer = await prisma.player.findUnique({
+            where: { name: player.name },
+          });
+
+          // If doesn't exist, create new player
+          if (!existingPlayer) {
+            existingPlayer = await prisma.player.create({
+              data: {
+                name: player.name,
+                played: 0,
+                won: 0,
+                drawn: 0,
+                lost: 0,
+                goalsFor: 0,
+                goalsAgainst: 0,
+                goalDifference: 0,
+                points: 0,
+              },
+            });
+          }
+
+          return existingPlayer;
+        })
       );
 
+      // Create player ID mapping (from frontend temp IDs to database IDs)
+      const playerIdMap = new Map(
+        players.map((p: any, idx: number) => [p.id, playerRecords[idx].id])
+      );
+
+      // Create matches with the actual player IDs
       const matchesData = matches.map((match: any) => ({
         tournamentId: tournament.id,
-        homePlayerId: playerIdMap.get(match.homePlayerId),
-        awayPlayerId: playerIdMap.get(match.awayPlayerId),
+        homePlayerId: playerIdMap.get(match.homePlayerId)!,
+        awayPlayerId: playerIdMap.get(match.awayPlayerId)!,
         homeScore: match.homeScore,
         awayScore: match.awayScore,
         played: match.played,
@@ -81,13 +134,14 @@ export default async function handler(
         data: matchesData,
       });
 
-      const fullTournament = await prisma.tournament.findUnique({
-        where: { id: tournament.id },
-        include: {
-          players: true,
-          matches: true,
-        },
-      });
+      // Return tournament with players and matches
+      const fullTournament = {
+        ...tournament,
+        players: playerRecords,
+        matches: await prisma.match.findMany({
+          where: { tournamentId: tournament.id },
+        }),
+      };
 
       return res.status(200).json(fullTournament);
     } catch (error) {

@@ -16,17 +16,14 @@ model Tournament {
   started   Boolean  @default(true)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  players   Player[]
   matches   Match[]
 }
 
 model Player {
   id           String     @id @default(cuid())
-  name         String
-  tournamentId String
-  tournament   Tournament @relation(fields: [tournamentId], references: [id], onDelete: Cascade)
+  name         String     @unique
   
-  // Stats
+  // Lifetime Stats (accumulate across all tournaments)
   played         Int @default(0)
   won            Int @default(0)
   drawn          Int @default(0)

@@ -26,8 +26,12 @@ export default async function handler(
       const tournament = await prisma.tournament.findUnique({
         where: { id },
         include: {
-          players: true,
-          matches: true,
+          matches: {
+            include: {
+              homePlayer: true,
+              awayPlayer: true,
+            },
+          },
         },
       });
 
@@ -35,7 +39,38 @@ export default async function handler(
         return res.status(404).json({ error: 'Tournament not found' });
       }
 
-      return res.status(200).json(tournament);
+      // Get unique players from matches
+      const playerIds = new Set<string>();
+      tournament.matches.forEach(match => {
+        playerIds.add(match.homePlayerId);
+        playerIds.add(match.awayPlayerId);
+      });
+
+      const players = Array.from(playerIds).map(playerId => {
+        const match = tournament.matches.find(
+          m => m.homePlayerId === playerId || m.awayPlayerId === playerId
+        );
+        return match?.homePlayerId === playerId ? match.homePlayer : match?.awayPlayer;
+      }).filter(Boolean);
+
+      const response = {
+        ...tournament,
+        players,
+        matches: tournament.matches.map(m => ({
+          id: m.id,
+          tournamentId: m.tournamentId,
+          homePlayerId: m.homePlayerId,
+          awayPlayerId: m.awayPlayerId,
+          homeScore: m.homeScore,
+          awayScore: m.awayScore,
+          played: m.played,
+          round: m.round,
+          createdAt: m.createdAt,
+          updatedAt: m.updatedAt,
+        })),
+      };
+
+      return res.status(200).json(response);
     } catch (error) {
       console.error('Error fetching tournament:', error);
       return res.status(500).json({ error: 'Failed to fetch tournament' });
@@ -44,10 +79,11 @@ export default async function handler(
 
   if (req.method === 'DELETE') {
     try {
+      // Only delete tournament and matches - players are preserved
       await prisma.tournament.delete({
         where: { id },
       });
-      return res.status(200).json({ success: true });
+      return res.status(200).json({ success: true, message: 'Tournament deleted, player stats preserved' });
     } catch (error) {
       console.error('Error deleting tournament:', error);
       return res.status(500).json({ error: 'Failed to delete tournament' });
