@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import './App.css';
 import type { Tournament, Player } from './types';
 import {
   createPlayer,
@@ -26,11 +25,9 @@ function App() {
   useEffect(() => {
     const loadTournament = async () => {
       try {
-        // First check localStorage for tournament ID
         const savedTournamentId = localStorage.getItem('tournamentId');
         
         if (savedTournamentId) {
-          // Try to load from API
           const dbTournament = await api.getTournament(savedTournamentId);
           if (dbTournament) {
             setTournamentId(dbTournament.id);
@@ -57,14 +54,12 @@ function App() {
           }
         }
 
-        // Fall back to localStorage if API fails
         const savedTournament = localStorage.getItem('tournament');
         if (savedTournament) {
           setTournament(JSON.parse(savedTournament));
         }
       } catch (error) {
         console.error('Error loading tournament:', error);
-        // Fall back to localStorage
         const savedTournament = localStorage.getItem('tournament');
         if (savedTournament) {
           setTournament(JSON.parse(savedTournament));
@@ -82,7 +77,6 @@ function App() {
       const players = playerNames.map((name) => createPlayer(name));
       const matches = generateRoundRobinSchedule(players);
 
-      // Save to API
       const dbTournament = await api.createTournament({
         name: 'FIFA Tournament',
         players,
@@ -118,14 +112,12 @@ function App() {
 
   const handleUpdateScore = async (matchId: string, homeScore: number, awayScore: number) => {
     try {
-      // Update match in database
       await api.updateMatch(matchId, {
         homeScore,
         awayScore,
         played: true,
       });
 
-      // Reload tournament to get updated stats
       if (tournamentId) {
         const dbTournament = await api.getTournament(tournamentId);
         setTournament({
@@ -170,7 +162,6 @@ function App() {
         setSelectedPlayer(null);
       } catch (error) {
         console.error('Error deleting tournament:', error);
-        // Still reset locally even if API fails
         localStorage.removeItem('tournamentId');
         localStorage.removeItem('tournament');
         setTournament({
@@ -186,40 +177,45 @@ function App() {
 
   if (loading) {
     return (
-      <div className="app">
-        <div className="loading">
-          <h2>Loading tournament...</h2>
-        </div>
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 to-indigo-800 flex items-center justify-center">
+        <h2 className="text-2xl text-white animate-pulse">Loading tournament...</h2>
       </div>
     );
   }
 
   if (!tournament.started) {
-    return <PlayerSetup onStartTournament={handleStartTournament} />;
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-purple-600 to-indigo-800 py-8">
+        <PlayerSetup onStartTournament={handleStartTournament} />
+      </div>
+    );
   }
 
   return (
-    <div className="app">
-      <header className="app-header">
-        <h1>🏆 FIFA Tournament</h1>
-        <button onClick={handleResetTournament} className="btn-reset">
-          Reset Tournament
-        </button>
+    <div className="min-h-screen bg-gradient-to-br from-purple-600 to-indigo-800 pb-8">
+      <header className="bg-white/95 shadow-lg py-6 px-8 mb-8">
+        <div className="max-w-7xl mx-auto flex justify-between items-center">
+          <h1 className="text-3xl font-bold text-gray-800">🏆 FIFA Tournament</h1>
+          <button
+            onClick={handleResetTournament}
+            className="px-6 py-3 bg-red-500 text-white font-semibold rounded-lg hover:bg-red-600 transform hover:-translate-y-0.5 transition-all duration-300 shadow-md hover:shadow-lg"
+          >
+            Reset Tournament
+          </button>
+        </div>
       </header>
 
-      <div className="app-container">
-        <div className="main-content">
-          <StandingsTable
-            players={tournament.players}
-            onSelectPlayer={setSelectedPlayer}
-          />
+      <div className="max-w-7xl mx-auto px-4">
+        <StandingsTable
+          players={tournament.players}
+          onSelectPlayer={setSelectedPlayer}
+        />
 
-          <MatchList
-            matches={tournament.matches}
-            players={tournament.players}
-            onUpdateScore={handleUpdateScore}
-          />
-        </div>
+        <MatchList
+          matches={tournament.matches}
+          players={tournament.players}
+          onUpdateScore={handleUpdateScore}
+        />
       </div>
 
       {selectedPlayer && (
