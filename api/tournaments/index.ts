@@ -37,6 +37,8 @@ export default async function handler(
     try {
       const { name, players, matches } = req.body;
 
+      console.log('Creating tournament with:', { name, playersCount: players?.length, matchesCount: matches?.length });
+
       const tournament = await prisma.tournament.create({
         data: {
           name,
@@ -90,7 +92,11 @@ export default async function handler(
       return res.status(200).json(fullTournament);
     } catch (error) {
       console.error('Error creating tournament:', error);
-      return res.status(500).json({ error: 'Failed to create tournament' });
+      return res.status(500).json({ 
+        error: 'Failed to create tournament',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        details: error instanceof Error ? error.stack : undefined
+      });
     }
   }
 

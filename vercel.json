@@ -2,6 +2,11 @@
   "buildCommand": "prisma generate && npm run build",
   "framework": "vite",
   "devCommand": "vite --port 5173",
-  "installCommand": "npm install"
+  "installCommand": "npm install",
+  "functions": {
+    "api/**/*.ts": {
+      "maxDuration": 10
+    }
+  }
 }
 
