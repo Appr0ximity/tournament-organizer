@@ -5,7 +5,13 @@ import StandingsTable from './components/StandingsTable';
 import MatchList from './components/MatchList';
 import PlayerProfile from './components/PlayerProfile';
 import { createTournamentWithPlayers } from './utils/tournamentGenerator';
-import * as api from './utils/api';
+import {
+  getTournaments,
+  getTournament,
+  createTournament,
+  updateMatch,
+  deleteTournament,
+} from './utils/api';
 
 function App() {
   const [tournament, setTournament] = useState<Tournament | null>(null);
@@ -24,12 +30,12 @@ function App() {
       setError(null);
 
       // Get the list of tournaments
-      const tournaments = await api.getTournaments();
+      const tournaments = await getTournaments();
       
       if (tournaments.length > 0) {
         // Load the most recent tournament
         const latestTournament = tournaments[0];
-        const fullTournament = await api.getTournament(latestTournament.id);
+        const fullTournament = await getTournament(latestTournament.id);
         setTournament(fullTournament);
       }
     } catch (err) {
@@ -49,7 +55,7 @@ function App() {
       const newTournament = createTournamentWithPlayers(playerNames);
 
       // Create tournament via API
-      const createdTournament = await api.createTournament(
+      const createdTournament = await createTournament(
         newTournament.players,
         newTournament.matches
       );
@@ -70,10 +76,10 @@ function App() {
       setError(null);
 
       // Update match via API
-      const updatedMatch = await api.updateMatch(matchId, homeScore, awayScore);
+      const updatedMatch = await updateMatch(matchId, homeScore, awayScore);
 
       // Reload the entire tournament to get updated player stats
-      const updatedTournament = await api.getTournament(tournament.id);
+      const updatedTournament = await getTournament(tournament.id);
       setTournament(updatedTournament);
 
       console.log('Match updated:', updatedMatch);
@@ -95,7 +101,7 @@ function App() {
         setError(null);
 
         // Delete tournament via API
-        await api.deleteTournament(tournament.id);
+        await deleteTournament(tournament.id);
         setTournament(null);
         setSelectedPlayer(null);
       } catch (err) {

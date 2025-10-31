@@ -1,4 +1,16 @@
-import type { Player, Match, PlayerStats } from '../types';
+import type { Player, Match, PlayerStats, Tournament } from '../types';
+
+export function createTournamentWithPlayers(playerNames: string[]): Tournament {
+  const players = playerNames.map(name => createPlayer(name));
+  const matches = generateRoundRobinSchedule(players);
+  
+  return {
+    id: crypto.randomUUID(),
+    players,
+    matches,
+    started: true,
+  };
+}
 
 export function createPlayer(name: string): Player {
   return {

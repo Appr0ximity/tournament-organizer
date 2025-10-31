@@ -26,6 +26,7 @@ export interface Match {
 }
 
 export interface Tournament {
+  id: string;
   players: Player[];
   matches: Match[];
   started: boolean;
