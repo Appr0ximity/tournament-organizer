@@ -150,7 +150,8 @@ export default function MatchList({ matches, players, onUpdateMatch }: MatchList
             {isPending ? (
               <button
                 onClick={() => handleStartEdit(match)}
-                className="w-full px-4 py-2 bg-gradient-to-r from-neon-cyan to-neon-blue text-black font-bold rounded hover:shadow-neon-cyan transition-all duration-300 uppercase text-sm tracking-wider"
+                style={{ background: 'linear-gradient(to right, #00ffff, #0080ff)' }}
+                className="w-full px-4 py-2 text-black font-bold rounded hover:shadow-neon-cyan transition-all duration-300 uppercase text-sm tracking-wider"
               >
                 Enter Score
               </button>

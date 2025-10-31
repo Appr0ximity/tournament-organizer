@@ -193,7 +193,10 @@ function App() {
               🔄 Reset Tournament
             </button>
             {allCompleted && (
-              <div className="px-6 py-3 bg-gradient-to-r from-neon-cyan to-neon-purple text-black font-bold rounded shadow-neon-cyan uppercase tracking-wider animate-pulse">
+              <div 
+                style={{ background: 'linear-gradient(to right, #00ffff, #8000ff)' }}
+                className="px-6 py-3 text-black font-bold rounded shadow-neon-cyan uppercase tracking-wider animate-pulse"
+              >
                 🎉 Tournament Complete!
               </div>
             )}

@@ -76,10 +76,15 @@ export default function PlayerSetup({ onStartTournament }: PlayerSetupProps) {
         <button
           onClick={handleStartTournament}
           disabled={playerList.length < 2}
+          style={{
+            background: playerList.length >= 2 
+              ? 'linear-gradient(to right, #00ffff, #0080ff)'
+              : 'linear-gradient(to right, #374151, #1f2937)'
+          }}
           className={`w-full py-4 font-bold text-lg rounded transition-all duration-300 uppercase tracking-wider ${
             playerList.length >= 2
-              ? 'bg-gradient-to-r from-neon-cyan to-neon-blue text-black hover:shadow-neon-cyan cursor-pointer'
-              : 'bg-gradient-to-r from-gray-700 to-gray-800 text-gray-500 cursor-not-allowed'
+              ? 'text-black hover:shadow-neon-cyan cursor-pointer'
+              : 'text-gray-500 cursor-not-allowed'
           }`}
         >
           Start Tournament
