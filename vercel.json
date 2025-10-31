@@ -2,9 +2,6 @@
   "buildCommand": "prisma generate && npm run build",
   "framework": "vite",
   "devCommand": "vite --port 5173",
-  "installCommand": "npm install",
-  "env": {
-    "DATABASE_URL": "@database_url"
-  }
+  "installCommand": "npm install"
 }
 
