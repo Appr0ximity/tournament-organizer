@@ -43,7 +43,25 @@ export default async function handler(
           const match = tournament.matches.find(
             m => m.homePlayerId === id || m.awayPlayerId === id
           );
-          return match?.homePlayerId === id ? match.homePlayer : match?.awayPlayer;
+          const player = match?.homePlayerId === id ? match.homePlayer : match?.awayPlayer;
+          
+          // Transform player to match frontend structure with nested stats
+          if (!player) return null;
+          
+          return {
+            id: player.id,
+            name: player.name,
+            stats: {
+              played: player.played,
+              won: player.won,
+              drawn: player.drawn,
+              lost: player.lost,
+              goalsFor: player.goalsFor,
+              goalsAgainst: player.goalsAgainst,
+              goalDifference: player.goalDifference,
+              points: player.points,
+            },
+          };
         }).filter(Boolean);
 
         return {
@@ -134,10 +152,26 @@ export default async function handler(
         data: matchesData,
       });
 
+      // Transform players to match frontend structure with nested stats
+      const transformedPlayers = playerRecords.map(player => ({
+        id: player.id,
+        name: player.name,
+        stats: {
+          played: player.played,
+          won: player.won,
+          drawn: player.drawn,
+          lost: player.lost,
+          goalsFor: player.goalsFor,
+          goalsAgainst: player.goalsAgainst,
+          goalDifference: player.goalDifference,
+          points: player.points,
+        },
+      }));
+
       // Return tournament with players and matches
       const fullTournament = {
         ...tournament,
-        players: playerRecords,
+        players: transformedPlayers,
         matches: await prisma.match.findMany({
           where: { tournamentId: tournament.id },
         }),

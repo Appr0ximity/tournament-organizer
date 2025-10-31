@@ -50,7 +50,25 @@ export default async function handler(
         const match = tournament.matches.find(
           m => m.homePlayerId === playerId || m.awayPlayerId === playerId
         );
-        return match?.homePlayerId === playerId ? match.homePlayer : match?.awayPlayer;
+        const player = match?.homePlayerId === playerId ? match.homePlayer : match?.awayPlayer;
+        
+        // Transform player to match frontend structure with nested stats
+        if (!player) return null;
+        
+        return {
+          id: player.id,
+          name: player.name,
+          stats: {
+            played: player.played,
+            won: player.won,
+            drawn: player.drawn,
+            lost: player.lost,
+            goalsFor: player.goalsFor,
+            goalsAgainst: player.goalsAgainst,
+            goalDifference: player.goalDifference,
+            points: player.points,
+          },
+        };
       }).filter(Boolean);
 
       const response = {
