@@ -1,0 +1,9 @@
+{
+  "buildCommand": "prisma generate && npm run build",
+  "framework": "vite",
+  "installCommand": "npm install",
+  "env": {
+    "DATABASE_URL": "@database_url"
+  }
+}
+
